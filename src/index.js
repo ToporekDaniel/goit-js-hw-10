@@ -1,25 +1,34 @@
-import axios, { Axios } from 'axios';
-
+// import axios, { Axios } from 'axios';
+import { fetchBreeds } from './cat-api.js';
+import { fetchCatByBreed } from './cat-api.js';
 const selector = document.querySelector('.breed-select');
 const loadingTxt = document.querySelector('.loader');
 const errorMsg = document.querySelector('.error');
 const info = document.querySelector('.cat-info');
 
-axios.defaults.headers.common['x-api-key'] =
-  'live_WRWXKlnRixSzsHICcWS6Pn9tmnRdWr3I3QkTBEOi29hGwjbPJIswGEFXh1JSeUoD';
-axios.defaults.baseURL = 'https://api.thecatapi.com/v1';
+// axios.defaults.headers.common['x-api-key'] =
+//   'live_WRWXKlnRixSzsHICcWS6Pn9tmnRdWr3I3QkTBEOi29hGwjbPJIswGEFXh1JSeUoD';
+// axios.defaults.baseURL = 'https://api.thecatapi.com/v1';
 
-function fetchBreeds() {
-  return axios
-    .get('/breeds')
-    .then(res => {
-      return res.data;
-    })
-    .catch(error => {
-      showError();
-    });
+// importowana funkcja
+
+// function fetchBreeds() {
+//   return axios
+//     .get('/breeds')
+//     .then(res => {
+//       return res.data;
+//     })
+//     .catch(error => {
+//       showError();
+//     });
+// }
+
+function showSelector() {
+  selector.style.display = 'block';
 }
-
+function hideselector() {
+  selector.style.display = 'none';
+}
 function showError() {
   errorMsg.style.display = 'block';
 }
@@ -32,7 +41,9 @@ function showLoading() {
 function hideLoading() {
   loadingTxt.style.display = 'none';
 }
+
 hideError();
+hideselector();
 fetchBreeds()
   .then(data => {
     hideLoading();
@@ -47,67 +58,44 @@ fetchBreeds()
       selectItem.text = breed.name;
       selector.insertAdjacentElement('beforeend', selectItem);
     });
+    showSelector();
   })
   .catch(showError);
 
-// za wiele kombinowania
-
-// function findCats(catID, thing, catData) {
-//   const foundCat = catData.find(breed => breed.id === catID);
-//   if (foundCat) {
-//     return foundCat[thing];
-//   }
-//   return '';
-// }
-
 selector.addEventListener('change', event => {
-  showLoading();
-  hideError();
-  info.innerHTML = '';
-  const catID = event.target.value;
-  // console.log(catID);
+  if (event.target.value === '0') {
+    console.log('Wybierz kota z listy aby uzyskać o nim informacje');
+  } else {
+    showLoading();
+    hideError();
+    info.innerHTML = '';
+    const catID = event.target.value;
+    // console.log(catID);
 
-  fetchBreeds()
-    .then(data => {
-      // console.log(data.find(breed => breed.id === catID));
-
-      // tak jest zdecydowanie prościej
-      const selectedCat = data.find(breed => breed.id === catID);
-
-      const image = document.createElement('img');
-      image.src = data.find(breed => breed.id === catID).image.url;
-      image.alt = 'This is a image of a cat';
-      image.height = 500;
-      info.insertAdjacentElement('beforeend', image);
-      info.insertAdjacentHTML('beforeend', `<h2>${selectedCat.name}</h2>`);
-      info.insertAdjacentHTML(
-        'beforeend',
-        `<p><b>Description:</b> ${selectedCat.description}</p>`
-      );
-      info.insertAdjacentHTML(
-        'beforeend',
-        `<p><b>Temperament:</b> ${selectedCat.temperament}</p>`
-      );
-      hideLoading();
-    })
-    .catch(error => {
-      hideLoading();
-      showError();
-      console.error(error);
-    });
+    fetchBreeds()
+      .then(data => {
+        const selectedCat = fetchCatByBreed(data, catID);
+        // console.log(selectedCat);
+        const image = document.createElement('img');
+        image.src = selectedCat.image.url;
+        image.alt = 'This is a image of a cat';
+        image.height = 500;
+        info.insertAdjacentElement('beforeend', image);
+        info.insertAdjacentHTML('beforeend', `<h2>${selectedCat.name}</h2>`);
+        info.insertAdjacentHTML(
+          'beforeend',
+          `<p><b>Description:</b> ${selectedCat.description}</p>`
+        );
+        info.insertAdjacentHTML(
+          'beforeend',
+          `<p><b>Temperament:</b> ${selectedCat.temperament}</p>`
+        );
+        hideLoading();
+      })
+      .catch(error => {
+        hideLoading();
+        showError();
+        console.error(error);
+      });
+  }
 });
-
-// fetchBreeds().then(data => {
-//   data.map(breed => {
-//     console.log(breed.id);
-//     console.log(breed.name);
-//     console.log(breed.description);
-//     console.log(breed.image.url);
-//     const image = document.createElement('img');
-//     image.src = breed.image.url;
-//     image.alt = 'This is a image of a cat';
-//     image.width = 300;
-//     image.height = 200;
-//     info.insertAdjacentElement('beforeend', image);
-//   });
-// });
